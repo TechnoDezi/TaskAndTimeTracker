@@ -41,8 +41,11 @@ namespace TaskAndTimeTracker
 
             if (results.Count() > 0)
             {
-                var totalDuration = results.ToList().Select(x => x.Duration).Sum();
+                var totalDuration = results.ToList().Where(x => x.Type == "Billable" || x.Type == "Remote Working" || x.Type == "Unknown").Select(x => x.Duration).Sum();
                 lblTotalDuration.Text = GetDurationString(totalDuration);
+
+                var totalDurationNonBillable = results.ToList().Where(x => x.Type == "Non Billable" || x.Type == "Personal").Select(x => x.Duration).Sum();
+                lblNonBillable.Text = GetDurationString(totalDurationNonBillable);
             }
             else
             {
@@ -71,7 +74,7 @@ namespace TaskAndTimeTracker
             DateTime startDate = DateTime.Parse(DateTime.Now.ToString("yyyy/MM/dd") + " 00:00");
             DateTime toDate = DateTime.Parse(DateTime.Now.ToString("yyyy/MM/dd") + " 23:59:59");
             DateTime workStarted = DateTime.Parse(DateTime.Now.ToString("yyyy/MM/dd") + " " + txtWorkStartTime.Text);
-
+            
             //Get results for today
             IQueryable<TimeLog> results;
             using (var session = DataDocumentStore.Instance.OpenSession())
@@ -82,7 +85,7 @@ namespace TaskAndTimeTracker
             if (results != null && results.Count() == 0)
             {
                 //Add first entry
-                AddEntry("Start Work", workStarted, 0);
+                AddEntry("Start Work", workStarted, 0, GetTypeString(true));
             }
 
             //Get Last Entry for today
@@ -94,7 +97,7 @@ namespace TaskAndTimeTracker
 
             //Add entry specified
             double duration = (DateTime.Now - lastEntry.DateLogged).TotalSeconds;
-            AddEntry(txtNewEntryDescription.Text, DateTime.Now, duration);
+            AddEntry(txtNewEntryDescription.Text, DateTime.Now, duration, GetTypeString(false));
 
             txtNewEntryDescription.Text = "";
             txtNewEntryDescription.Focus();
@@ -114,7 +117,54 @@ namespace TaskAndTimeTracker
             return answer;
         }
 
-        private void AddEntry(string description, DateTime loggedDate, double duration)
+        private string GetTypeString(bool firstEntry)
+        {
+            string returnValue = "Unknown";
+
+            if(firstEntry)
+            {
+                returnValue = "Non Billable";
+            }
+            else if (radBillable.Checked)
+            {
+                returnValue = "Billable";
+            }
+            else if (radNonBillable.Checked)
+            {
+                returnValue = "Non Billable";
+            }
+            else if (radPersonal.Checked)
+            {
+                returnValue = "Personal";
+            }
+            else if (radRemoteWorking.Checked)
+            {
+                returnValue = "Remote Working";
+            }
+
+            return returnValue;
+        }
+
+        private void SetRadioButtonsByType(string workType)
+        {
+            workType = (string.IsNullOrEmpty(workType)) ? "Unknown" : workType;
+
+            radBillable.Checked = false;
+            radNonBillable.Checked = false;
+            radPersonal.Checked = false;
+            radRemoteWorking.Checked = false;
+
+            switch (workType)
+            {
+                case "Unknown": radBillable.Checked = true;break;
+                case "Non Billable": radNonBillable.Checked = true; break;
+                case "Billable": radBillable.Checked = true; break;
+                case "Personal": radPersonal.Checked = true; break;
+                case "Remote Working": radRemoteWorking.Checked = true; break;
+            }
+        }
+
+        private void AddEntry(string description, DateTime loggedDate, double duration, string workType)
         {
             using (var session = DataDocumentStore.Instance.OpenSession())
             {
@@ -122,9 +172,10 @@ namespace TaskAndTimeTracker
 
                 TimeLog tl = new TimeLog();
                 tl.DateLogged = loggedDate;
-                tl.Description = description;
+                tl.Description = description.TrimEnd(Environment.NewLine.ToCharArray());
                 tl.Duration = duration;
                 tl.DurationString = durationString;
+                tl.Type = workType;
 
                 session.Store(tl);
                 session.SaveChanges();
@@ -141,7 +192,7 @@ namespace TaskAndTimeTracker
 
         private void txtDescriptionSearch_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter)
+            if(e.KeyCode == Keys.Enter)
             {
                 LoadResults();
                 txtDescriptionSearch.Focus();
@@ -150,7 +201,7 @@ namespace TaskAndTimeTracker
 
         private void btnExport_Click(object sender, EventArgs e)
         {
-            if(saveFileDialog1.ShowDialog() == DialogResult.OK)
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 ExportExcel(saveFileDialog1.FileName);
             }
@@ -184,6 +235,7 @@ namespace TaskAndTimeTracker
                 dt.Columns.Add("Description");
                 dt.Columns.Add("Duration");
                 dt.Columns.Add("Minutes");
+                dt.Columns.Add("Work Type");
 
                 foreach (var item in results)
                 {
@@ -196,6 +248,7 @@ namespace TaskAndTimeTracker
                     dtRow["Description"] = item.Description;
                     dtRow["Duration"] = item.DurationString;
                     dtRow["Minutes"] = duration.TotalMinutes;
+                    dtRow["Work Type"] = (string.IsNullOrEmpty(item.Type)) ? "Unknown" : item.Type;
 
                     dt.Rows.Add(dtRow);
                 }
@@ -220,6 +273,73 @@ namespace TaskAndTimeTracker
                     MessageBox.Show("Exporting to Excel file success.", "Success");
                 }
             }
+        }
+
+        private void radBillable_CheckedChanged(object sender, EventArgs e)
+        {
+            txtNewEntryDescription.Focus();
+        }
+
+        private void radNonBillable_CheckedChanged(object sender, EventArgs e)
+        {
+            txtNewEntryDescription.Focus();
+        }
+
+        private void radPersonal_CheckedChanged(object sender, EventArgs e)
+        {
+            txtNewEntryDescription.Focus();
+        }
+
+        private void radRemoteWorking_CheckedChanged(object sender, EventArgs e)
+        {
+            txtNewEntryDescription.Focus();
+        }
+
+        private void dgvSearchResults_Click(object sender, EventArgs e)
+        {
+            if (dgvSearchResults.SelectedRows.Count == 1)
+            {
+                TimeLog tl = ((TimeLog)dgvSearchResults.SelectedRows[0].DataBoundItem);
+                txtNewEntryDescription.Text = tl.Description;
+                SetRadioButtonsByType(tl.Type);
+            }
+            else
+            {
+                txtNewEntryDescription.Text = "";
+                SetRadioButtonsByType("");
+            }
+        }
+
+        private void txtNewEntryDescription_KeyDown(object sender, KeyEventArgs e)
+        {
+            
+        }
+
+        private void btnDeleteSelectedEntry_Click(object sender, EventArgs e)
+        {
+            if (dgvSearchResults.SelectedRows.Count > 0)
+            {
+                if (MessageBox.Show("Are you sure you wish to delete the selected entries?", "Confirm Delete", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    foreach (DataGridViewRow item in dgvSearchResults.SelectedRows)
+                    {
+                        TimeLog entry = (TimeLog)item.DataBoundItem;
+
+                        using (var session = DataDocumentStore.Instance.OpenSession())
+                        {
+                            session.Delete(entry.Id);
+                            session.SaveChanges();
+                        };
+                    }
+
+                    LoadResults();
+                }
+            }
+        }
+
+        private void txtNewEntryDescription_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            
         }
     }
 }

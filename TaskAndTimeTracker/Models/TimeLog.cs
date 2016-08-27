@@ -13,5 +13,6 @@ namespace TaskAndTimeTracker.Models
         public string Description { get; set; }
         public double Duration { get; set; }
         public string DurationString { get; set; }
+        public string Type { get; set; }
     }
 }
