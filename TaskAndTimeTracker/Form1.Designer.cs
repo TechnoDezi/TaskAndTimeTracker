@@ -40,6 +40,12 @@
             this.txtDescriptionSearch = new System.Windows.Forms.TextBox();
             this.btnSearch = new System.Windows.Forms.Button();
             this.dgvSearchResults = new System.Windows.Forms.DataGridView();
+            this.cId = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.cDateLogged = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.cDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.cDurationString = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Duration = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.cType = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.btnExport = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.txtWorkStartTime = new System.Windows.Forms.TextBox();
@@ -53,12 +59,8 @@
             this.radPersonal = new System.Windows.Forms.RadioButton();
             this.radRemoteWorking = new System.Windows.Forms.RadioButton();
             this.btnDeleteSelectedEntry = new System.Windows.Forms.Button();
-            this.cId = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.cDateLogged = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.cDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.cDurationString = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Duration = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.cType = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.lblTotalHours = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSearchResults)).BeginInit();
             this.SuspendLayout();
             // 
@@ -186,6 +188,54 @@
             this.dgvSearchResults.TabIndex = 11;
             this.dgvSearchResults.Click += new System.EventHandler(this.dgvSearchResults_Click);
             // 
+            // cId
+            // 
+            this.cId.DataPropertyName = "Id";
+            this.cId.HeaderText = "ID";
+            this.cId.Name = "cId";
+            this.cId.ReadOnly = true;
+            this.cId.Visible = false;
+            // 
+            // cDateLogged
+            // 
+            this.cDateLogged.DataPropertyName = "DateLogged";
+            this.cDateLogged.HeaderText = "Date Logged";
+            this.cDateLogged.Name = "cDateLogged";
+            this.cDateLogged.ReadOnly = true;
+            this.cDateLogged.Width = 150;
+            // 
+            // cDescription
+            // 
+            this.cDescription.DataPropertyName = "Description";
+            this.cDescription.HeaderText = "Description";
+            this.cDescription.Name = "cDescription";
+            this.cDescription.ReadOnly = true;
+            this.cDescription.Width = 450;
+            // 
+            // cDurationString
+            // 
+            this.cDurationString.DataPropertyName = "DurationString";
+            this.cDurationString.HeaderText = "Duration";
+            this.cDurationString.Name = "cDurationString";
+            this.cDurationString.ReadOnly = true;
+            this.cDurationString.Width = 150;
+            // 
+            // Duration
+            // 
+            this.Duration.DataPropertyName = "Duration";
+            this.Duration.HeaderText = "cDuration";
+            this.Duration.Name = "Duration";
+            this.Duration.ReadOnly = true;
+            this.Duration.Visible = false;
+            // 
+            // cType
+            // 
+            this.cType.DataPropertyName = "Type";
+            this.cType.HeaderText = "Type";
+            this.cType.Name = "cType";
+            this.cType.ReadOnly = true;
+            this.cType.Width = 150;
+            // 
             // btnExport
             // 
             this.btnExport.Location = new System.Drawing.Point(777, 177);
@@ -221,11 +271,11 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(714, 63);
+            this.label7.Location = new System.Drawing.Point(739, 63);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(70, 13);
+            this.label7.Size = new System.Drawing.Size(43, 13);
             this.label7.TabIndex = 15;
-            this.label7.Text = "Total Billable:";
+            this.label7.Text = "Billable:";
             // 
             // lblTotalDuration
             // 
@@ -263,6 +313,7 @@
             this.radBillable.Name = "radBillable";
             this.radBillable.Size = new System.Drawing.Size(104, 24);
             this.radBillable.TabIndex = 19;
+            this.radBillable.TabStop = true;
             this.radBillable.Text = "Billable";
             this.radBillable.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.radBillable.UseVisualStyleBackColor = true;
@@ -317,59 +368,31 @@
             this.btnDeleteSelectedEntry.UseVisualStyleBackColor = true;
             this.btnDeleteSelectedEntry.Click += new System.EventHandler(this.btnDeleteSelectedEntry_Click);
             // 
-            // cId
+            // lblTotalHours
             // 
-            this.cId.DataPropertyName = "Id";
-            this.cId.HeaderText = "ID";
-            this.cId.Name = "cId";
-            this.cId.ReadOnly = true;
-            this.cId.Visible = false;
+            this.lblTotalHours.AutoSize = true;
+            this.lblTotalHours.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTotalHours.Location = new System.Drawing.Point(804, 101);
+            this.lblTotalHours.Name = "lblTotalHours";
+            this.lblTotalHours.Size = new System.Drawing.Size(0, 13);
+            this.lblTotalHours.TabIndex = 25;
             // 
-            // cDateLogged
+            // label10
             // 
-            this.cDateLogged.DataPropertyName = "DateLogged";
-            this.cDateLogged.HeaderText = "Date Logged";
-            this.cDateLogged.Name = "cDateLogged";
-            this.cDateLogged.ReadOnly = true;
-            this.cDateLogged.Width = 150;
-            // 
-            // cDescription
-            // 
-            this.cDescription.DataPropertyName = "Description";
-            this.cDescription.HeaderText = "Description";
-            this.cDescription.Name = "cDescription";
-            this.cDescription.ReadOnly = true;
-            this.cDescription.Width = 450;
-            // 
-            // cDurationString
-            // 
-            this.cDurationString.DataPropertyName = "DurationString";
-            this.cDurationString.HeaderText = "Duration";
-            this.cDurationString.Name = "cDurationString";
-            this.cDurationString.ReadOnly = true;
-            this.cDurationString.Width = 150;
-            // 
-            // Duration
-            // 
-            this.Duration.DataPropertyName = "Duration";
-            this.Duration.HeaderText = "cDuration";
-            this.Duration.Name = "Duration";
-            this.Duration.ReadOnly = true;
-            this.Duration.Visible = false;
-            // 
-            // cType
-            // 
-            this.cType.DataPropertyName = "Type";
-            this.cType.HeaderText = "Type";
-            this.cType.Name = "cType";
-            this.cType.ReadOnly = true;
-            this.cType.Width = 150;
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(748, 101);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(34, 13);
+            this.label10.TabIndex = 24;
+            this.label10.Text = "Total:";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1001, 758);
+            this.Controls.Add(this.lblTotalHours);
+            this.Controls.Add(this.label10);
             this.Controls.Add(this.btnDeleteSelectedEntry);
             this.Controls.Add(this.radRemoteWorking);
             this.Controls.Add(this.radPersonal);
@@ -436,6 +459,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn cDurationString;
         private System.Windows.Forms.DataGridViewTextBoxColumn Duration;
         private System.Windows.Forms.DataGridViewTextBoxColumn cType;
+        private System.Windows.Forms.Label lblTotalHours;
+        private System.Windows.Forms.Label label10;
     }
 }
 

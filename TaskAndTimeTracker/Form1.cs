@@ -41,11 +41,14 @@ namespace TaskAndTimeTracker
 
             if (results.Count() > 0)
             {
-                var totalDuration = results.ToList().Where(x => x.Type == "Billable" || x.Type == "Remote Working" || x.Type == "Unknown").Select(x => x.Duration).Sum();
-                lblTotalDuration.Text = GetDurationString(totalDuration);
+                var totalDurationBillable = results.ToList().Where(x => x.Type == "Billable" || x.Type == "Remote Working" || x.Type == "Unknown").Select(x => x.Duration).Sum();
+                lblTotalDuration.Text = GetDurationString(totalDurationBillable);
 
                 var totalDurationNonBillable = results.ToList().Where(x => x.Type == "Non Billable" || x.Type == "Personal").Select(x => x.Duration).Sum();
                 lblNonBillable.Text = GetDurationString(totalDurationNonBillable);
+
+                var totalDuration = results.ToList().Select(x => x.Duration).Sum();
+                lblTotalHours.Text = GetDurationString(totalDuration);
             }
             else
             {
@@ -228,39 +231,29 @@ namespace TaskAndTimeTracker
 
             if (results.Count() > 0)
             {
-                DataTable dt = new DataTable();
-                dt.Columns.Add("Date Logged");
-                dt.Columns.Add("Month");
-                dt.Columns.Add("Year");
-                dt.Columns.Add("Description");
-                dt.Columns.Add("Duration");
-                dt.Columns.Add("Minutes");
-                dt.Columns.Add("Work Type");
-
-                foreach (var item in results)
-                {
-                    DataRow dtRow = dt.NewRow();
-                    TimeSpan duration = TimeSpan.FromSeconds(item.Duration);
-
-                    dtRow["Date Logged"] = item.DateLogged;
-                    dtRow["Month"] = item.DateLogged.ToString("MMMM");
-                    dtRow["Year"] = item.DateLogged.ToString("yyyy");
-                    dtRow["Description"] = item.Description;
-                    dtRow["Duration"] = item.DurationString;
-                    dtRow["Minutes"] = duration.TotalMinutes;
-                    dtRow["Work Type"] = (string.IsNullOrEmpty(item.Type)) ? "Unknown" : item.Type;
-
-                    dt.Rows.Add(dtRow);
-                }
-
                 using (var pck = new ExcelPackage())
                 {
-                    ExcelWorksheet ws = pck.Workbook.Worksheets.Add("Sheet1");
-                    ws.Cells["A1"].LoadFromDataTable(dt, true);
-                    ws.Cells.AutoFitColumns();
+                    //Create Summary Sheet
+                    ExcelWorksheet wsSum = pck.Workbook.Worksheets.Add("Summary");
+                    DataTable dtSummary = GetTimeLogSummaryForExport(results);
+                    wsSum.Cells["A1"].LoadFromDataTable(dtSummary, true);
+                    wsSum.Cells.AutoFitColumns();
+                    
+                    using (ExcelRange rng = wsSum.Cells[1, 1, 1, dtSummary.Columns.Count])
+                    {
+                        rng.Style.Font.Bold = true;
+                        rng.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        rng.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(79, 129, 189));
+                        rng.Style.Font.Color.SetColor(System.Drawing.Color.White);
+                    }
 
-                    // Add some styling
-                    using (ExcelRange rng = ws.Cells[1, 1, 1, dt.Columns.Count])
+                    //Create Time Log Sheet
+                    DataTable dtLog = GetTimeLogForExport(results);
+                    ExcelWorksheet ws = pck.Workbook.Worksheets.Add("Time Log");
+                    ws.Cells["A1"].LoadFromDataTable(dtLog, true);
+                    ws.Cells.AutoFitColumns();
+                    
+                    using (ExcelRange rng = ws.Cells[1, 1, 1, dtLog.Columns.Count])
                     {
                         rng.Style.Font.Bold = true;
                         rng.Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -273,6 +266,76 @@ namespace TaskAndTimeTracker
                     MessageBox.Show("Exporting to Excel file success.", "Success");
                 }
             }
+        }
+
+        private DataTable GetTimeLogSummaryForExport(IQueryable<TimeLog> results)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Date");
+            dt.Columns.Add("Start Time");
+            dt.Columns.Add("End Time");
+            dt.Columns.Add("Billable");
+            dt.Columns.Add("Non Billable");
+            dt.Columns.Add("Total Hours Worked");
+
+            //Get unique days
+            var days = results.ToList().Select(x => x.DateLogged.ToString("yyyy/MM/dd")).Distinct();
+
+            foreach(string day in days)
+            {
+                DataRow dtRow = dt.NewRow();
+
+                dtRow["Date"] = day;
+
+                var dayList = results.ToList().Where(x => x.DateLogged.ToString("yyyy/MM/dd") == day);
+                dtRow["Start Time"] = dayList.Select(x => x.DateLogged).Min().ToString("HH:mm:ss");
+                dtRow["End Time"] = dayList.Select(x => x.DateLogged).Max().ToString("HH:mm:ss");
+
+                var totalDurationBillable = dayList.Where(x => x.Type == "Billable" || x.Type == "Remote Working" || x.Type == "Unknown").Select(x => x.Duration).Sum();
+                dtRow["Billable"] = GetDurationString(totalDurationBillable);
+
+                var totalDurationNonBillable = dayList.Where(x => x.Type == "Non Billable" || x.Type == "Personal").Select(x => x.Duration).Sum();
+                dtRow["Non Billable"] = GetDurationString(totalDurationNonBillable);
+
+                var totalDuration = dayList.Select(x => x.Duration).Sum();
+                dtRow["Total Hours Worked"] = GetDurationString(totalDuration);
+
+                dt.Rows.Add(dtRow);
+            }
+
+            return dt;
+        }
+
+        private DataTable GetTimeLogForExport(IQueryable<TimeLog> results)
+        {
+            DataTable dtLog = new DataTable();
+            dtLog.Columns.Add("Date Logged");
+            dtLog.Columns.Add("Day");
+            dtLog.Columns.Add("Month");
+            dtLog.Columns.Add("Year");
+            dtLog.Columns.Add("Description");
+            dtLog.Columns.Add("Duration");
+            dtLog.Columns.Add("Minutes");
+            dtLog.Columns.Add("Work Type");
+
+            foreach (var item in results)
+            {
+                DataRow dtRow = dtLog.NewRow();
+                TimeSpan duration = TimeSpan.FromSeconds(item.Duration);
+
+                dtRow["Date Logged"] = item.DateLogged;
+                dtRow["Month"] = item.DateLogged.ToString("MMMM");
+                dtRow["Year"] = item.DateLogged.ToString("yyyy");
+                dtRow["Day"] = item.DateLogged.ToString("dd");
+                dtRow["Description"] = item.Description;
+                dtRow["Duration"] = item.DurationString;
+                dtRow["Minutes"] = duration.TotalMinutes;
+                dtRow["Work Type"] = (string.IsNullOrEmpty(item.Type)) ? "Unknown" : item.Type;
+
+                dtLog.Rows.Add(dtRow);
+            }
+
+            return dtLog;
         }
 
         private void radBillable_CheckedChanged(object sender, EventArgs e)
