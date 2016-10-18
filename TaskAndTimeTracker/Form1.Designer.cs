@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.label1 = new System.Windows.Forms.Label();
             this.txtNewEntryDescription = new System.Windows.Forms.TextBox();
             this.btnAddNewEntry = new System.Windows.Forms.Button();
@@ -61,7 +62,10 @@
             this.btnDeleteSelectedEntry = new System.Windows.Forms.Button();
             this.lblTotalHours = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
+            this.cmsLogEntry = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.tsmiEditLogEntry = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSearchResults)).BeginInit();
+            this.cmsLogEntry.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -180,11 +184,12 @@
             this.cDurationString,
             this.Duration,
             this.cType});
+            this.dgvSearchResults.ContextMenuStrip = this.cmsLogEntry;
             this.dgvSearchResults.Location = new System.Drawing.Point(15, 208);
             this.dgvSearchResults.Name = "dgvSearchResults";
             this.dgvSearchResults.ReadOnly = true;
             this.dgvSearchResults.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvSearchResults.Size = new System.Drawing.Size(974, 538);
+            this.dgvSearchResults.Size = new System.Drawing.Size(974, 513);
             this.dgvSearchResults.TabIndex = 11;
             this.dgvSearchResults.Click += new System.EventHandler(this.dgvSearchResults_Click);
             // 
@@ -386,11 +391,25 @@
             this.label10.TabIndex = 24;
             this.label10.Text = "Total:";
             // 
+            // cmsLogEntry
+            // 
+            this.cmsLogEntry.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsmiEditLogEntry});
+            this.cmsLogEntry.Name = "cmsLogEntry";
+            this.cmsLogEntry.Size = new System.Drawing.Size(153, 48);
+            // 
+            // tsmiEditLogEntry
+            // 
+            this.tsmiEditLogEntry.Name = "tsmiEditLogEntry";
+            this.tsmiEditLogEntry.Size = new System.Drawing.Size(152, 22);
+            this.tsmiEditLogEntry.Text = "Edit Log Entry";
+            this.tsmiEditLogEntry.Click += new System.EventHandler(this.tsmiEditLogEntry_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1001, 758);
+            this.ClientSize = new System.Drawing.Size(1001, 733);
             this.Controls.Add(this.lblTotalHours);
             this.Controls.Add(this.label10);
             this.Controls.Add(this.btnDeleteSelectedEntry);
@@ -421,6 +440,7 @@
             this.Text = "Task and Time Tracker";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvSearchResults)).EndInit();
+            this.cmsLogEntry.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -461,6 +481,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn cType;
         private System.Windows.Forms.Label lblTotalHours;
         private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.ContextMenuStrip cmsLogEntry;
+        private System.Windows.Forms.ToolStripMenuItem tsmiEditLogEntry;
     }
 }
 

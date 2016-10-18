@@ -15,6 +15,7 @@ using Raven;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System.IO;
+using TaskAndTimeTracker.Forms;
 
 namespace TaskAndTimeTracker
 {
@@ -42,13 +43,13 @@ namespace TaskAndTimeTracker
             if (results.Count() > 0)
             {
                 var totalDurationBillable = results.ToList().Where(x => x.Type == "Billable" || x.Type == "Remote Working" || x.Type == "Unknown").Select(x => x.Duration).Sum();
-                lblTotalDuration.Text = GetDurationString(totalDurationBillable);
+                lblTotalDuration.Text = Helper.GetDurationString(totalDurationBillable);
 
                 var totalDurationNonBillable = results.ToList().Where(x => x.Type == "Non Billable" || x.Type == "Personal").Select(x => x.Duration).Sum();
-                lblNonBillable.Text = GetDurationString(totalDurationNonBillable);
+                lblNonBillable.Text = Helper.GetDurationString(totalDurationNonBillable);
 
                 var totalDuration = results.ToList().Select(x => x.Duration).Sum();
-                lblTotalHours.Text = GetDurationString(totalDuration);
+                lblTotalHours.Text = Helper.GetDurationString(totalDuration);
             }
             else
             {
@@ -108,18 +109,6 @@ namespace TaskAndTimeTracker
             LoadResults();
         }
 
-        private string GetDurationString(double secs)
-        {
-            TimeSpan t = TimeSpan.FromSeconds(secs);
-
-            string answer = string.Format("{0:D2}h:{1:D2}m:{2:D2}s",
-                            t.Hours,
-                            t.Minutes,
-                            t.Seconds);
-
-            return answer;
-        }
-
         private string GetTypeString(bool firstEntry)
         {
             string returnValue = "Unknown";
@@ -171,7 +160,7 @@ namespace TaskAndTimeTracker
         {
             using (var session = DataDocumentStore.Instance.OpenSession())
             {
-                string durationString = GetDurationString(duration);
+                string durationString = Helper.GetDurationString(duration);
 
                 TimeLog tl = new TimeLog();
                 tl.DateLogged = loggedDate;
@@ -292,13 +281,13 @@ namespace TaskAndTimeTracker
                 dtRow["End Time"] = dayList.Select(x => x.DateLogged).Max().ToString("HH:mm:ss");
 
                 var totalDurationBillable = dayList.Where(x => x.Type == "Billable" || x.Type == "Remote Working" || x.Type == "Unknown").Select(x => x.Duration).Sum();
-                dtRow["Billable"] = GetDurationString(totalDurationBillable);
+                dtRow["Billable"] = Helper.GetDurationString(totalDurationBillable);
 
                 var totalDurationNonBillable = dayList.Where(x => x.Type == "Non Billable" || x.Type == "Personal").Select(x => x.Duration).Sum();
-                dtRow["Non Billable"] = GetDurationString(totalDurationNonBillable);
+                dtRow["Non Billable"] = Helper.GetDurationString(totalDurationNonBillable);
 
                 var totalDuration = dayList.Select(x => x.Duration).Sum();
-                dtRow["Total Hours Worked"] = GetDurationString(totalDuration);
+                dtRow["Total Hours Worked"] = Helper.GetDurationString(totalDuration);
 
                 dt.Rows.Add(dtRow);
             }
@@ -403,6 +392,29 @@ namespace TaskAndTimeTracker
         private void txtNewEntryDescription_KeyPress(object sender, KeyPressEventArgs e)
         {
             
+        }
+
+        private void tsmiEditLogEntry_Click(object sender, EventArgs e)
+        {
+            if (dgvSearchResults.SelectedRows.Count == 1)
+            {
+                EditTimeEntry edit = new EditTimeEntry();
+                edit.timeLogEntry = (TimeLog)dgvSearchResults.SelectedRows[0].DataBoundItem;
+                edit.prevTimeLogEntry = GetPreviousEntry(edit.timeLogEntry);
+                edit.ShowDialog();
+
+                LoadResults();
+            }
+        }
+
+        private TimeLog GetPreviousEntry(TimeLog currentItem)
+        {
+            IQueryable<TimeLog> results = QueryResultset();
+
+            Int32 index = results.ToList().IndexOf(results.Where(x => x.Id == currentItem.Id).First());
+            TimeLog prevEntry = results.ToList().ElementAt(index - 1);
+
+            return prevEntry;
         }
     }
 }
